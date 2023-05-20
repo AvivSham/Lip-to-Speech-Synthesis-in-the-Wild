@@ -19,6 +19,7 @@ from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from src.data.vid_aud_lrs2 import MultiDataset as LRS2_Dataset
 from src.data.vid_aud_lrs3 import MultiDataset as LRS3_Dataset
+from src.data.vid_aud_grid import MultiDataset as GRID_Dataset
 from torch.nn import DataParallel as DP
 import torch.nn.parallel
 import time
@@ -94,6 +95,13 @@ def train_net(args):
             max_window_size=args.max_window_size,
             max_v_timesteps=args.max_timesteps,
             augmentations=args.augmentations,
+        )
+
+    elif args.data_name == "GRID":
+        train_data = GRID_Dataset(
+            data=args.data,
+            mode=args.mode,
+            augmentations=args.augmentations
         )
 
     v_front = Visual_front(
