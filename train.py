@@ -104,6 +104,9 @@ def train_net(args):
             augmentations=args.augmentations
         )
 
+    else:
+        raise NotImplementedError(f"{args.data} dataset is not supported please, please choose from [LRS3, LRS2, GRID]")
+
     v_front = Visual_front(
         in_channels=1, conf_layer=args.conf_layer, num_head=args.num_head
     )

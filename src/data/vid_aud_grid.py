@@ -30,7 +30,7 @@ log1e5 = math.log(1e-5)
 class MultiDataset(Dataset):
     def __init__(
         self,
-        grid,
+        data,
         mode,
         max_v_timesteps=155,
         window_size=40,
@@ -40,7 +40,7 @@ class MultiDataset(Dataset):
         fast_validate=False,
     ):
         assert mode in ["train", "test", "val"]
-        self.grid = grid
+        self.data = data
         self.mode = mode
         self.sample_window = True if mode == "train" else False
         self.fast_validate = fast_validate
@@ -48,7 +48,7 @@ class MultiDataset(Dataset):
         self.window_size = window_size
         self.augmentations = augmentations if mode == "train" else False
         self.num_mel_bins = num_mel_bins
-        self.file_paths = self.build_file_list(grid, mode, subject)
+        self.file_paths = self.build_file_list(data, mode, subject)
         self.f_min = 55.0
         self.f_max = 7500.0
         self.stft = TacotronSTFT(
@@ -227,7 +227,7 @@ class MultiDataset(Dataset):
                 num_v_frames,
                 audio.squeeze(0),
                 num_a_frames,
-                file_path.replace(self.grid, "")[1:-4],
+                file_path.replace(self.data, "")[1:-4],
             )
         else:
             return melspec, spec, vid, num_v_frames, audio.squeeze(0), num_a_frames
