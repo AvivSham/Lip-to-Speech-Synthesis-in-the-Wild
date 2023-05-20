@@ -1,7 +1,8 @@
 import random
 import torchvision.transforms.functional as F
 
-class StatefulRandomHorizontalFlip():
+
+class StatefulRandomHorizontalFlip:
     def __init__(self, probability=0.5):
         self.probability = probability
         self.rand = random.random()
@@ -12,7 +13,7 @@ class StatefulRandomHorizontalFlip():
         return img
 
     def __repr__(self):
-        return self.__class__.__name__ + '(probability={})'.format(self.probability)
+        return self.__class__.__name__ + "(probability={})".format(self.probability)
 
 
 class Crop(object):

@@ -18,7 +18,8 @@ from torch import Tensor
 from typing import Tuple
 
 import sys
-sys.path.append('./src')
+
+sys.path.append("./src")
 
 from conformer.feed_forward import FeedForwardModule
 from conformer.attention import MultiHeadedSelfAttentionModule
@@ -56,17 +57,18 @@ class ConformerBlock(nn.Module):
     Returns: outputs
         - **outputs** (batch, time, dim): Tensor produces by conformer block.
     """
+
     def __init__(
-            self,
-            encoder_dim: int = 512,
-            num_attention_heads: int = 8,
-            feed_forward_expansion_factor: int = 4,
-            conv_expansion_factor: int = 2,
-            feed_forward_dropout_p: float = 0.1,
-            attention_dropout_p: float = 0.1,
-            conv_dropout_p: float = 0.1,
-            conv_kernel_size: int = 31,
-            half_step_residual: bool = True,
+        self,
+        encoder_dim: int = 512,
+        num_attention_heads: int = 8,
+        feed_forward_expansion_factor: int = 4,
+        conv_expansion_factor: int = 2,
+        feed_forward_dropout_p: float = 0.1,
+        attention_dropout_p: float = 0.1,
+        conv_dropout_p: float = 0.1,
+        conv_kernel_size: int = 31,
+        half_step_residual: bool = True,
     ):
         super(ConformerBlock, self).__init__()
         if half_step_residual:
@@ -75,39 +77,39 @@ class ConformerBlock(nn.Module):
             self.feed_forward_residual_factor = 1
 
         self.feed_forward1 = ResidualConnectionModule(
-                module=FeedForwardModule(
-                    encoder_dim=encoder_dim,
-                    expansion_factor=feed_forward_expansion_factor,
-                    dropout_p=feed_forward_dropout_p,
-                ),
-                module_factor=self.feed_forward_residual_factor,
-            )
+            module=FeedForwardModule(
+                encoder_dim=encoder_dim,
+                expansion_factor=feed_forward_expansion_factor,
+                dropout_p=feed_forward_dropout_p,
+            ),
+            module_factor=self.feed_forward_residual_factor,
+        )
 
         self.MHA = ResidualConnectionModule(
-                module=MultiHeadedSelfAttentionModule(
-                    d_model=encoder_dim,
-                    num_heads=num_attention_heads,
-                    dropout_p=attention_dropout_p,
-                ),
-            )
+            module=MultiHeadedSelfAttentionModule(
+                d_model=encoder_dim,
+                num_heads=num_attention_heads,
+                dropout_p=attention_dropout_p,
+            ),
+        )
 
         self.Conv = ResidualConnectionModule(
-                module=ConformerConvModule(
-                    in_channels=encoder_dim,
-                    kernel_size=conv_kernel_size,
-                    expansion_factor=conv_expansion_factor,
-                    dropout_p=conv_dropout_p,
-                ),
-            )
+            module=ConformerConvModule(
+                in_channels=encoder_dim,
+                kernel_size=conv_kernel_size,
+                expansion_factor=conv_expansion_factor,
+                dropout_p=conv_dropout_p,
+            ),
+        )
 
         self.feed_forward2 = ResidualConnectionModule(
-                module=FeedForwardModule(
-                    encoder_dim=encoder_dim,
-                    expansion_factor=feed_forward_expansion_factor,
-                    dropout_p=feed_forward_dropout_p,
-                ),
-                module_factor=self.feed_forward_residual_factor,
-            )
+            module=FeedForwardModule(
+                encoder_dim=encoder_dim,
+                expansion_factor=feed_forward_expansion_factor,
+                dropout_p=feed_forward_dropout_p,
+            ),
+            module_factor=self.feed_forward_residual_factor,
+        )
 
         self.layer_norm = nn.LayerNorm(encoder_dim)
 
@@ -179,38 +181,44 @@ class ConformerEncoder(nn.Module):
     Returns: outputs
         - **outputs** (batch, out_channels, time): Tensor produces by conformer encoder.
     """
+
     def __init__(
-            self,
-            encoder_dim: int = 512,
-            num_layers: int = 17,
-            num_attention_heads: int = 8,
-            feed_forward_expansion_factor: int = 4,
-            conv_expansion_factor: int = 2,
-            feed_forward_dropout_p: float = 0.1,
-            attention_dropout_p: float = 0.1,
-            conv_dropout_p: float = 0.1,
-            conv_kernel_size: int = 31,
-            half_step_residual: bool = True,
+        self,
+        encoder_dim: int = 512,
+        num_layers: int = 17,
+        num_attention_heads: int = 8,
+        feed_forward_expansion_factor: int = 4,
+        conv_expansion_factor: int = 2,
+        feed_forward_dropout_p: float = 0.1,
+        attention_dropout_p: float = 0.1,
+        conv_dropout_p: float = 0.1,
+        conv_kernel_size: int = 31,
+        half_step_residual: bool = True,
     ):
         super(ConformerEncoder, self).__init__()
-        self.layers = nn.ModuleList([ConformerBlock(
-            encoder_dim=encoder_dim,
-            num_attention_heads=num_attention_heads,
-            feed_forward_expansion_factor=feed_forward_expansion_factor,
-            conv_expansion_factor=conv_expansion_factor,
-            feed_forward_dropout_p=feed_forward_dropout_p,
-            attention_dropout_p=attention_dropout_p,
-            conv_dropout_p=conv_dropout_p,
-            conv_kernel_size=conv_kernel_size,
-            half_step_residual=half_step_residual,
-        ) for _ in range(num_layers)])
+        self.layers = nn.ModuleList(
+            [
+                ConformerBlock(
+                    encoder_dim=encoder_dim,
+                    num_attention_heads=num_attention_heads,
+                    feed_forward_expansion_factor=feed_forward_expansion_factor,
+                    conv_expansion_factor=conv_expansion_factor,
+                    feed_forward_dropout_p=feed_forward_dropout_p,
+                    attention_dropout_p=attention_dropout_p,
+                    conv_dropout_p=conv_dropout_p,
+                    conv_kernel_size=conv_kernel_size,
+                    half_step_residual=half_step_residual,
+                )
+                for _ in range(num_layers)
+            ]
+        )
 
     def count_parameters(self) -> int:
-        """ Count parameters of encoder """
+        """Count parameters of encoder"""
         return sum([p.numel for p in self.parameters()])
 
     def update_dropout(self, dropout_p: float) -> None:
-        """ Update dropout probability of encoder """
+        """Update dropout probability of encoder"""
         for name, child in self.named_children():
             if isinstance(child, nn.Dropout):
                 child.p = dropout_p
